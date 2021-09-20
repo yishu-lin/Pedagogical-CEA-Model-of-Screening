@@ -1,0 +1,83 @@
+CEplane=	TRUE										
+MeasureQALYs=	TRUE										
+ShowICERs=	TRUE										
+HealthOnXAxis=	TRUE										
+SaveGraphPDF=	TRUE										
+SaveGraphPNG=	TRUE										
+ShowOptimalStrategy=	TRUE										
+ShowPreviousFrontier=	TRUE										
+ExtraNote=	TRUE										
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
