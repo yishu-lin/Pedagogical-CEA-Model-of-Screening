@@ -1,0 +1,4 @@
+"ScreenNumber"	"TestApplied"	"ScreenAge"	"N_Screens"	"RealPostives"	"TruePositives"	"FalsePositives"
+1	1	85	41027	322	300	839
+2	1	90	22269	121	115	447
+3	1	95	8312	48	43	166
