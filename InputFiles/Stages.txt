@@ -1,6 +1,6 @@
 Stage	Name	Type	Scale	Shape	Type	Scale	Shape	Type	Scale	Shape	Input
-Stage1	Healthy	NA	NA	NA	NA	NA	NA	NA	NA	NA	1
-Stage2	Preclinical	3	5	1	3	3	1	3	7	1	0.9
+Stage1	Healthy	NA	NA	NA	NA	NA	NA	NA	NA	NA	0.999
+Stage2	Preclinical	3	5	1	3	3	1	3	9	1	0.9
 Stage3	Clinical	1	0.5	1	1	0.25	1	1	1	1	0.5
 Stage4	CauseSpecificDeath	NA	NA	NA	NA	NA	NA	NA	NA	NA	0
 Stage5	OtherCauseDeath	NA	NA	NA	NA	NA	NA	NA	NA	NA	0

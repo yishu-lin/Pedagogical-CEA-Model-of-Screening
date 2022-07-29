@@ -5,8 +5,8 @@ HealthOnXAxis=	TRUE
 SaveGraphPDF=	TRUE										
 SaveGraphPNG=	TRUE										
 ShowOptimalStrategy=	TRUE										
-ShowPreviousFrontier=	TRUE										
-ExtraNote=	TRUE										
+ExcelDefinedScreening=	TRUE										
+ScenarioAnaylsis=	TRUE										
 											
 											
 											
