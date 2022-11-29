@@ -47,7 +47,7 @@ Costs            <- data.frame(read.table(file = "InputFiles/Costs.txt",        
 source("InputFiles/Misc.txt")  # SampleSize; Threshold
 source("InputFiles/Options.txt")
 
-# To make a list of interested parameters and scenarios
+# To make a list of parameters that are included in scenario analysis
 ParameterNames <- c("StageScale2",
                     "StageScale3",
                     #"StageUtility1",  # These parameters are not included in our scenario analysis
@@ -76,7 +76,7 @@ ScenarioNames <- "Input"  # Create a variable to save the names of scenarios
 
 if (ScenarioAnaylsis == TRUE){
   ScenarioValue <- c("Low", "High")  # Our default has two scenarios for each parameter
-  for (Parameter in ParameterNames){  # The list of interested parameters
+  for (Parameter in ParameterNames){  # The list of  parameters for scenario analysis
     for (Scenarios in ScenarioValue){
       InputValue <- InputTable[, "Input"]
       if (!(Parameter %in% c("Incidence", "Survival"))){  # Parameters, incidence and survival, have different risks for age groups
@@ -234,20 +234,20 @@ for (CurrentRun in c(1: ncol(Input))){
   Outcomes[CuredCases, "AllCauseDeath"] <- Outcomes[CuredCases, "OtherCauseDeath"]
   
   # Create a reference series of discount factors for 100 years
-  DF_Effects <- round((1 + Input["DiscountRateEffect", CurrentRun]) ^ -(c(1:101) - Input["DiscountYear", CurrentRun]), digits = 4)
-  DF_Costs   <- round((1 + Input["DiscountRateCost",   CurrentRun]) ^ -(c(1:101) - Input["DiscountYear", CurrentRun]), digits = 4)
+  DF_Effects <- round((1 + Input["DiscountRateEffect", CurrentRun]) ^ -(c(1:100) - Input["DiscountYear", CurrentRun]), digits = 4)
+  DF_Costs   <- round((1 + Input["DiscountRateCost",   CurrentRun]) ^ -(c(1:100) - Input["DiscountYear", CurrentRun]), digits = 4)
   Acc_DF_Effects <- NA  # Create a variable to save accumulated discounted life-years
-  for (np in c(1:101)){
-    Acc_DF_Effects <- c(Acc_DF_Effects, sum(DF_Effects[1:np]))
+  for (year in c(1:100)){
+    Acc_DF_Effects <- c(Acc_DF_Effects, sum(DF_Effects[1:year]))
   }
-  Acc_DF_Effects <- Acc_DF_Effects[-1]
+  Acc_DF_Effects <- Acc_DF_Effects[-1]  # Remove NA
   
-  # Define the present value function
+  # Define the present value function for effectiveness
   PresentValue <- function(x){
-    if (x >= 1 & !(is.na(x))){  # We don't discount the first life-year
+    if (x >= 1 & !(is.na(x))){
       Acc_DF_Effects[trunc(x)] + (x - trunc(x)) * DF_Effects[trunc(x) + 1]
     } else if (!(is.na(x))){
-      (x - trunc(x)) * DF_Effects[trunc(x) + 1]
+      x * DF_Effects[1]
       } else {
         x
         }
@@ -264,19 +264,19 @@ for (CurrentRun in c(1: ncol(Input))){
   # Define the function for quality-of-life adjustment
   Accumulated_QALYS <- function(x, output){
     QALYS <- x[1] * Utility[1]  # For the first health state, simply multiply the life-years by the corresponding utility weight
-    for (k in (1:(length(StagesInOrder) - 1))){  # For the remaining health states
-      if (x[k + 1] < x[length(StagesInOrder)]){  # Not the last health state
-        QALYS <- QALYS + Utility[k + 1] * (x[k + 1] - x[k])  # Add up the QALYs in each health state
-      } else {
-          QALYS <- QALYS + Utility[k + 1] * (x[length(StagesInOrder)] - x[k])  # The last health state
+    for (state in (2:length(StagesInOrder))){  # For the remaining health states
+        QALYS <- QALYS + Utility[state] * (x[state] - x[state - 1])  # Add up the QALYs in each health state
+        if (x[state] == x[length(StagesInOrder)]){  # The last health state
           break
         }
     }
     return(QALYS)
   }
   
-  UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)  # Quality-of-life adjusted but not discounted
-  D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)  # Quality-of-life adjusted and discounted
+  UD_QALYS[DiseaseFree] <- Outcomes[DiseaseFree,'AllCauseDeath'] * Utility[1]  # Quality-of-life adjusted but not discounted
+  UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)
+  D_QALYS[DiseaseFree] <- D_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted and discounted
+  D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)
   
   # Dis-utility due to the treatment
   ClinicalOnsetAges <- ceiling(Outcomes[ClinicalCases, "Clinical"])  # Identify the clinical ages and round up to integers for discounting
@@ -378,7 +378,8 @@ for (CurrentRun in c(1: ncol(Input))){
         Screens <- NULL  # Create an empty vector to bind the sequence of screens
         for (Interval in 1:Intervals ){  # Loops through the Intervals
           StopAge <- ChangeAges[Interval]  # Redefine the StopAge as the ChangeAge in this interval
-          NumberOfScreens <- round((StopAge - StartAge) / IntervalVector[Interval], 0) + 1  # Find the number of screens given rounding
+          NumberOfScreens <- (StopAge - StartAge) / IntervalVector[Interval] + 1  # Find the number of screens        
+          NumberOfScreens <- ifelse(NumberOfScreens %% 1 == 0.5, ceiling(NumberOfScreens), round(NumberOfScreens))  # Rounding the number of screens
           StopAge <- StartAge + (NumberOfScreens - 1) * IntervalVector[Interval]  # Redefine the actual StopAge following rounding
           Screens <- c(Screens, seq(StartAge, StopAge, IntervalVector[Interval]))  # Create the sequence of screens from the start and stop ages
           StartAge <- max(Screens)  # Update the final screen age as the Start Age for cases in which the interval changes
@@ -469,8 +470,10 @@ for (CurrentRun in c(1: ncol(Input))){
     SickOutcome <- cbind(SickOutcome[ , - length(StagesInOrder)], ScreenedOutcomes[Sick, "AllCauseDeath"])  # Update the age of death in the natural history of all the sick people
     Dis_SickOutcome <- apply(SickOutcome, MARGIN = c(1, 2), PresentValue)  # Apply the discounting function
     
-    UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)  # Quality-of-life adjusted but not discounted
-    D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)  # Quality-of-life adjusted and discounted
+    UD_QALYS[DiseaseFree] <- ScreenedOutcomes[DiseaseFree,'AllCauseDeath'] * Utility[1]  # Quality-of-life adjusted but not discounted
+    UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)
+    D_QALYS[DiseaseFree] <- D_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted and discounted
+    D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)
     
     # Calculate utility loss due to screening test
     DiscountFactor_Screen <- DF_Effects[ScreenCounts[, "ScreenAge"]]
