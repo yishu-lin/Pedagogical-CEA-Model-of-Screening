@@ -255,7 +255,7 @@ for (CurrentRun in c(1: ncol(Input))){
   
   # Calculate the effects
   UD_QALYS <- Outcomes[, "AllCauseDeath"]
-  D_QALYS <- D_LYS <- as.numeric(lapply(UD_QALYS, PresentValue))
+  D_QALYS <- D_LYS <- sapply(UD_QALYS, PresentValue)
   StagesInOrder <- c(paste(DefineStages[2:(nrow(DefineStages) - 2), "Name"]), "AllCauseDeath")
   SickOutcome <- as.data.frame(Outcomes[Sick, StagesInOrder])  # Create a table that only sick people included
   Dis_SickOutcome <- apply(SickOutcome, MARGIN = c(1, 2), PresentValue)  # Discount life-years for each health state among sick people
@@ -266,14 +266,14 @@ for (CurrentRun in c(1: ncol(Input))){
     QALYS <- x[1] * Utility[1]  # For the first health state, simply multiply the life-years by the corresponding utility weight
     for (state in (2:length(StagesInOrder))){  # For the remaining health states
         QALYS <- QALYS + Utility[state] * (x[state] - x[state - 1])  # Add up the QALYs in each health state
-        if (x[state] == x[length(StagesInOrder)]){  # The last health state
+        if (state == length(StagesInOrder)){  # The last health state
           break
         }
     }
     return(QALYS)
   }
   
-  UD_QALYS[DiseaseFree] <- Outcomes[DiseaseFree,'AllCauseDeath'] * Utility[1]  # Quality-of-life adjusted but not discounted
+  UD_QALYS[DiseaseFree] <- UD_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted but not discounted
   UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)
   D_QALYS[DiseaseFree] <- D_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted and discounted
   D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)
@@ -464,13 +464,13 @@ for (CurrentRun in c(1: ncol(Input))){
     ##################################### Effects and Costs of Screening Strategy #####################################
     # Assess effects
     UD_QALYS <- ScreenedOutcomes[, "AllCauseDeath"]
-    D_QALYS <- D_LYS <- as.numeric(lapply(UD_QALYS, PresentValue))  # Apply the discounting function that we defined above
+    D_QALYS <- D_LYS <- sapply(UD_QALYS, PresentValue)  # Apply the discounting function that we defined above
     
     # Quality-of-life only changes when entering another health state in their natural history
     SickOutcome <- cbind(SickOutcome[ , - length(StagesInOrder)], ScreenedOutcomes[Sick, "AllCauseDeath"])  # Update the age of death in the natural history of all the sick people
     Dis_SickOutcome <- apply(SickOutcome, MARGIN = c(1, 2), PresentValue)  # Apply the discounting function
     
-    UD_QALYS[DiseaseFree] <- ScreenedOutcomes[DiseaseFree,'AllCauseDeath'] * Utility[1]  # Quality-of-life adjusted but not discounted
+    UD_QALYS[DiseaseFree] <- UD_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted but not discounted
     UD_QALYS[Sick] <- apply(SickOutcome, 1, Accumulated_QALYS)
     D_QALYS[DiseaseFree] <- D_QALYS[DiseaseFree] * Utility[1]  # Quality-of-life adjusted and discounted
     D_QALYS[Sick] <- apply(Dis_SickOutcome, 1, Accumulated_QALYS)
