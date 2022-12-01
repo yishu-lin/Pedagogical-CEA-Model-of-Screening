@@ -234,10 +234,10 @@ for (CurrentRun in c(1: ncol(Input))){
   Outcomes[CuredCases, "AllCauseDeath"] <- Outcomes[CuredCases, "OtherCauseDeath"]
   
   # Create a reference series of discount factors for 100 years
-  DF_Effects <- round((1 + Input["DiscountRateEffect", CurrentRun]) ^ -(c(1:100) - Input["DiscountYear", CurrentRun]), digits = 4)
-  DF_Costs   <- round((1 + Input["DiscountRateCost",   CurrentRun]) ^ -(c(1:100) - Input["DiscountYear", CurrentRun]), digits = 4)
+  DF_Effects <- round((1 + Input["DiscountRateEffect", CurrentRun]) ^ -(c(1:101) - Input["DiscountYear", CurrentRun]), digits = 4)
+  DF_Costs   <- round((1 + Input["DiscountRateCost",   CurrentRun]) ^ -(c(1:101) - Input["DiscountYear", CurrentRun]), digits = 4)
   Acc_DF_Effects <- NA  # Create a variable to save accumulated discounted life-years
-  for (year in c(1:100)){
+  for (year in c(1:101)){
     Acc_DF_Effects <- c(Acc_DF_Effects, sum(DF_Effects[1:year]))
   }
   Acc_DF_Effects <- Acc_DF_Effects[-1]  # Remove NA
