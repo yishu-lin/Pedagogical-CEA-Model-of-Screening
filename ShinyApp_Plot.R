@@ -294,7 +294,7 @@ server <- function(input, output){  # We have four outputs in total: "distPlot1"
                                                 ScreenCounts <- NA  # If there is no file recording this intermediate result
                                               }
                                         
-                                        if (!(is.na(ScreenCounts))){
+                                        if (all(!(is.na(ScreenCounts)))){
                                           PlotData <- as.matrix(rbind(ScreenCounts$RealPostives, ScreenCounts$RealPostives - ScreenCounts$TruePositives))  # Create a matrix for plotting
                                           # Add extra space to the margin of the plot within frame
                                           par(mar = c(5, 4, 4, 6) + 0.1)
@@ -326,7 +326,7 @@ server <- function(input, output){  # We have four outputs in total: "distPlot1"
                                         AgeDist <- NA  # If there is no file recording this intermediate result
                                       }
                                 
-                                if (!(is.na(AgeDist))){
+                                if (all(!(is.na(AgeDist)))){
                                   AgeDist$group <- rep(seq(5, 100, by = 5), each = 5)  # Group by 5 years
                                   AgeDist <- aggregate(AgeDist, by = list(Category = AgeDist$group), FUN = sum)  # Sum up the numbers in each health state in each group
                                   
